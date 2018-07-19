@@ -227,6 +227,15 @@ func (p *Packet) AddAttr(attr *Attribute) {
 	p.Attributes = append(p.Attributes, attr)
 }
 
+func (p *Packet) AddAttrs(attrs ...*Attribute) {
+	for _, attr := range attrs {
+		if attr == nil {
+			continue
+		}
+		p.Attributes = append(p.Attributes, attr)
+	}
+}
+
 func (p *Packet) AddAttribute(t AttributeType, value interface{}) (err error) {
 	var attr *Attribute
 	if attr, err = NewAttribute(t); err != nil {

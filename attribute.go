@@ -64,6 +64,16 @@ func (a *Attribute) Decode() error {
 	return a.Encoder.Decode(a)
 }
 
+func MustNewAttribute(attributeType AttributeType, value interface{}) (a *Attribute) {
+	var err error
+	if a, err = NewAttribute(attributeType); err != nil || a == nil {
+		return nil
+	}
+	a.Value = value
+
+	return
+}
+
 func NewAttribute(attributeType AttributeType) (*Attribute, error) {
 	attr := new(Attribute)
 	var ok bool
