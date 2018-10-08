@@ -27,6 +27,7 @@ func (f HandlerFunc) ServeRequest(conn *net.UDPConn, r *Request) {
 }
 
 type Server struct {
+	Start time.Time
 	// Address to bind the server on. If empty, the address defaults to ":1812".
 	Addr string
 	// Network of the server. Valid values are "udp", "udp4", "udp6". If empty,
@@ -40,6 +41,7 @@ type Server struct {
 
 // ListenAndServe starts a RADIUS server on the address given in s.
 func (s *Server) ListenAndServe() error {
+	s.Start = time.Now()
 	var (
 		err  error
 		addr *net.UDPAddr
