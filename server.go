@@ -4,9 +4,11 @@ import (
 	"errors"
 	l "github.com/sirupsen/logrus"
 	"net"
+	"time"
 )
 
 type Request struct {
+	Start time.Time
 	Secret     []byte
 	RemoteAddr *net.UDPAddr
 	Packet     *Packet
@@ -73,6 +75,7 @@ func (s *Server) ListenAndServe() error {
 
 		//new request
 		r := &Request{
+			Start:time.Now(),
 			Packet: &Packet{},
 		}
 		buff := make([]byte, MaxPacketLength)
