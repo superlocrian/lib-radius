@@ -10,6 +10,9 @@ type Request struct {
 	Secret     []byte
 	RemoteAddr *net.UDPAddr
 	Packet     *Packet
+	//нужен для того чтобы, по мере прохождения запроса через бизнес логику,
+	// сохранять попутнуб информация типо полей для сквозного логирования etc ...
+	Context interface{}
 }
 type Handler interface {
 	ServeRequest(*net.UDPConn, *Request)
