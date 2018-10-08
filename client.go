@@ -17,24 +17,29 @@ func Exchange(packetBytes []byte, dst *net.UDPAddr, src *net.UDPAddr, retries in
 		return
 	}
 
+	/* Пробуем записать и прочитать пока не прочтем или не кончится количество попыток  */
+	var n int
 	for i := 0; i < retries; i++ {
 		if err = conn.SetWriteDeadline(time.Now().Add(timeout)); err != nil {
 			err = fmt.Errorf("conn.SetWriteDeadline: %v", err)
-			break
+			continue
 		}
 		if _, err = conn.Write(packetBytes); err != nil {
 			err = fmt.Errorf("conn.Write: %v", err)
-			break
+			continue
 		}
 		if err = conn.SetReadDeadline(time.Now().Add(timeout)); err != nil {
 			err = fmt.Errorf("conn.SetReadDeadline: %v", err)
-			break
+			continue
 		}
-		if _, err = conn.Read(buf[:]); err != nil {
+
+		if n, err = conn.Read(buf[:]); err == nil {
+			bytes = buf[:n]
+			break
+		} else {
 			err = fmt.Errorf("conn.Read: %v", err)
-			break
 		}
-		bytes = buf[:]
+
 	}
 
 	conn.Close()
