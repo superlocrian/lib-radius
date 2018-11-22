@@ -27,6 +27,9 @@ func (f HandlerFunc) ServeRequest(conn *net.UDPConn, r *Request) {
 	f(conn, r)
 }
 
+/**
+Example server
+ */
 type Server struct {
 	Start time.Time
 	// Address to bind the server on. If empty, the address defaults to ":1812".
