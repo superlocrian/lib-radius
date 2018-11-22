@@ -150,10 +150,11 @@ func (p *Packet) makeAuthenticator() error {
 	return nil
 }
 
-func (p *Packet) Decode() error {
+func (p *Packet) Decode() (err error) {
 
 	if len(p.Wire) < 3 {
-		return errors.New("too short packet")
+		err = fmt.Errorf("too short packet")
+		return
 	}
 	p.Type = PacketType(p.Wire[0])
 	p.Identifier = p.Wire[1]
@@ -161,7 +162,8 @@ func (p *Packet) Decode() error {
 	p.length = binary.BigEndian.Uint16(p.Wire[2:4])
 	p.lengthDecoded += 4
 	if p.length < 20 || p.length > MaxPacketLength {
-		return errors.New("radius: invalid packet length")
+		err = fmt.Errorf("radius: invalid packet length")
+		return
 	}
 	n := copy(p.Authenticator[:], p.Wire[4:20])
 	p.lengthDecoded += uint16(n)
@@ -172,39 +174,36 @@ func (p *Packet) Decode() error {
 	attrsBuff := p.attrsBuff.Bytes()
 
 	for lengthOfAttrBuf > 0 {
-
 		if lengthOfAttrBuf < 2 {
-			return errors.New(fmt.Sprintf("attribute must be at least 2 bytes long, but it's length is %d\n", lengthOfAttrBuf))
+			err = fmt.Errorf("attribute must be at least 2 bytes long, but it's length is %d\n", lengthOfAttrBuf)
+			return
 		}
-
 		attrLength := int(attrsBuff[1])
 		if attrLength == 0 {
 			break
 		}
 		if attrLength < 2 {
-			return errors.New(fmt.Sprintf("attribute length < 2 (length:%d)", attrLength))
+			err = fmt.Errorf("attribute length < 2 (length:%d)", attrLength)
+			return
 		}
-
 		if attrLength > 253 {
-			return errors.New(fmt.Sprintf("attribute length > 253 (length:%d)", attrLength))
+			err = fmt.Errorf("attribute length > 253 (length:%d)", attrLength)
+			return
 		}
 
 		if attrLength > lengthOfAttrBuf {
-			return errors.New(fmt.Sprintf("attribute length > packet size (%d > %d)", attrLength, lengthOfAttrBuf))
+			err = fmt.Errorf("attribute length > packet size (%d > %d)", attrLength, lengthOfAttrBuf)
+			return
 		}
 
-		a := new(Attribute)
-		a.Wire = attrsBuff[:attrLength]
-		var err error
-
-		var ok bool
-		a.Type = AttributeType(attrsBuff[0])
-		ai, ok := attrTypeToInfo[a.Type]
-		if !ok {
-			a.Encoder = DefaultEncoder
-		} else {
+		a := &Attribute{
+			Wire:attrsBuff[:attrLength],
+			Type:AttributeType(attrsBuff[0]),
+			Encoder: DefaultEncoder}
+		if ai, ok := attrTypeToInfo[a.Type]; ok{
 			a.Encoder = ai.Encoder
 		}
+
 		p.AddAttr(a)
 		if err = a.Decode(); err != nil {
 			return err
@@ -213,7 +212,7 @@ func (p *Packet) Decode() error {
 		attrsBuff = attrsBuff[attrLength:]
 		lengthOfAttrBuf = len(attrsBuff)
 	}
-	return nil
+	return
 }
 
 func (p *Packet) DecodeLengthNotMatch() bool {
