@@ -202,9 +202,6 @@ func (p *Packet) Decode() error {
 		ai, ok := attrTypeToInfo[a.Type]
 		if !ok {
 			a.Encoder = DefaultEncoder
-			if logger != nil {
-				logger.Warnf("can't decode attribute, type: %s ", a.Type.String())
-			}
 		} else {
 			a.Encoder = ai.Encoder
 		}
